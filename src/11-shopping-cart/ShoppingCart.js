@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 
 const items = [{
   name: 'apple',
@@ -12,7 +12,25 @@ const items = [{
 }]
 
 function ShoppingCart () {
-  const cart = [{ name: 'apple', quantity: 3, price: 0.39 }]
+  const [cart, setCart] = useState({});
+
+  const handleAddToCart = useCallback((name, price, increment = true) => {
+    const next = { ...cart };
+    if (!next[name]?.quantity) {
+      next[name] = {
+        quantity: 0,
+        price: price
+      };
+    }
+    if (increment) next[name].quantity++;
+    else next[name].quantity--;
+    if (next[name]?.quantity <= 0) delete next[name];
+    setCart(next);
+  }, [cart]);
+
+  const total = useMemo(() => {
+    return Object.values(cart).reduce((acc, i) => acc += i.quantity * i.price, 0);
+  }, [cart]);
 
   return (
     <div>
@@ -24,27 +42,29 @@ function ShoppingCart () {
             <div key={item.name}>
               <h3>{item.name}</h3>
               <p>${item.price}</p>
-              <button>Add to Cart</button>
+              <button onClick={() => handleAddToCart(item?.name, item?.price)}>Add to Cart</button>
             </div>)
           )}
         </div>
         <div>
           <h2>Cart</h2>
-          {cart.map(item => (
-            <div key={item.name}>
-              <h3>{item.name}</h3>
-              <p>
-                <button>-</button>
-                {item.quantity}
-                <button>+</button>
-              </p>
-              <p>Subtotal: ${item.quantity * item.price}</p>
-            </div>
-          ))}
+          {Object.entries(cart).map(([key, item], idx) => {
+            return (
+              <div key={`${key}--${idx}`}>
+                <h3>{key}</h3>
+                <p>
+                  <button onClick={() => handleAddToCart(key, item.price, false)}>-</button>
+                  {item.quantity}
+                  <button onClick={() => handleAddToCart(key, item.price)}>+</button>
+                </p>
+                <p>Subtotal: ${(item.quantity * item.price).toFixed(2)}</p>
+              </div>
+            )
+          })}
         </div>
       </div>
       <div className='total'>
-        <h2>Total: $0.00</h2>
+        <h2>Total: ${total?.toFixed(2)}</h2>
       </div>
     </div>
   )

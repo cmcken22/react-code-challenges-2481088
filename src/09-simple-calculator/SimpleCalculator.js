@@ -1,9 +1,22 @@
-import { useReducer } from "react"
+// import { useReducer } from "react"
+
+import { useCallback, useState } from "react";
 
 const initialState = {
   num1: 0,
   num2: 0,
   result: 'no result yet'
+}
+
+const useReducer = (reducer, initialState) => {
+  const [state, setState] = useState(initialState);
+
+  const dispatch = useCallback((action) => {
+    const nextState = reducer(state, action);
+    setState(nextState);
+  }, [state]);
+
+  return [state, dispatch];
 }
 
 function reducer (state, action) {
@@ -27,6 +40,9 @@ export default function SimpleCalculator () {
         {numbers.map(number => (
           <button
             key={number}
+            style={{
+              border: number === state?.num1 ? '1px solid black' : 'none'
+            }}
             onClick={() => dispatch({ type: 'SET_NUM_ONE', number })}
           >
             {number}
@@ -38,6 +54,9 @@ export default function SimpleCalculator () {
         {numbers.map(number => (
           <button
             key={number}
+            style={{
+              border: number === state?.num2 ? '1px solid black' : 'none'
+            }}
             onClick={() => dispatch({ type: 'SET_NUM_TWO', number })}
           >
             {number}
